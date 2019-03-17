@@ -4,6 +4,16 @@ import QRCode from 'react-native-qrcode';
 import * as firebase from 'firebase';
 import Dialog from "react-native-dialog";
 
+const config = {
+  apiKey: "AIzaSyBeIddAWImMMQ3PKnq36mgwiGW6_mjh5L0",
+  authDomain: "jogo-da-velha-85a1a.firebaseapp.com",
+  databaseURL: "https://jogo-da-velha-85a1a.firebaseio.com",
+  projectId: "jogo-da-velha-85a1a",
+  storageBucket: "jogo-da-velha-85a1a.appspot.com",
+  messagingSenderId: "916310862868"
+};
+firebase.initializeApp(config);
+
 export default class App extends React.Component {
 
   constructor(props) {
