@@ -26,15 +26,11 @@ export default class App extends React.Component {
     1: criador
     2: convidado */
     this.state = {
-      c00: '-',
-      c01: '-',
-      c02: '-',
-      c10: '-',
-      c11: '-',
-      c12: '-',
-      c20: '-',
-      c21: '-',
-      c22: '-',
+      cells: [
+        ['-', '-', '-'],
+        ['-', '-', '-'],
+        ['-', '-', '-'],
+      ],
       showDialog: false,
       statusJogo: 0,
       codJogo: null,
@@ -45,15 +41,11 @@ export default class App extends React.Component {
 
   criar = () => {
     firebase.database().ref().push({
-      c00: '-',
-      c01: '-',
-      c02: '-',
-      c10: '-',
-      c11: '-',
-      c12: '-',
-      c20: '-',
-      c21: '-',
-      c22: '-',
+      cells: [
+        ['-', '-', '-'],
+        ['-', '-', '-'],
+        ['-', '-', '-'],
+      ],
       criador: true,
       convidado: false,
       jogada: 0
@@ -62,15 +54,7 @@ export default class App extends React.Component {
         const val = snapshot.val();
         this.setState(
           {
-            c00: val.c00,
-            c01: val.c01,
-            c02: val.c02,
-            c10: val.c10,
-            c11: val.c11,
-            c12: val.c12,
-            c20: val.c20,
-            c21: val.c21,
-            c22: val.c22,
+            cells: val.cells,
             statusJogo: val.jogada
           }
         );
@@ -94,66 +78,77 @@ export default class App extends React.Component {
     });
   };
 
+  entrar = () => {
+    this.setState({
+      showDialog: true,
+    });
+  }
+  entrarNoJogo = () => {
+    this.setState(
+      {
+        showDialog: false,
+      });
+    firebase.database().ref(this.state.inputCodJogo + "/convidado").set(true);
+    firebase.database().ref(this.state.inputCodJogo).on('value', (snapshot) => {
+      const val = snapshot.val();
+      this.setState(
+        {
+          cells: val.cells,
+          statusJogo: val.jogada
+        }
+      );
+    });
+    this.setState(
+      {
+        convidado: true,
+        criador: false,
+        codJogo: this.state.inputCodJogo,
+        iniciado: true,
+      });
+  }
+
+  onPressCell = (row, column) => {
+    const { criador, statusJogo, cells, codJogo } = this.state;
+    const symbol = criador ? 'X' : 'O';
+
+    if (statusJogo === (criador ? 1 : 2)) {
+      const newCells = cells.slice();
+      const newRow = newCells[row].slice();
+      newRow.splice(column, 1, symbol);
+      newCells.splice(row, 1, newRow);
+
+      const db = firebase.database();
+      db.ref(`${codJogo}/cells`).set(newCells);
+      db.ref(`${codJogo}/jogada`).set(criador ? 2 : 1);
+      this.setState({
+        cells: newCells,
+      });
+    }
+  }
+
   render() {
-    const { c00, c01, c02, c10, c11, c12, c20, c21, c22, iniciado, showDialog, convidado, codJogo } = this.state;
+    const { cells, iniciado, showDialog, convidado, codJogo } = this.state;
+
     return (
       <View style={styles.container}>
         {iniciado ? (
           <View style={styles.container}>
             {convidado ? (
               <View style={styles.container}>
-                <View style={{
-                  justifyContent: 'space-around',
-                  flexDirection: 'row'
-                }}>
-                  <TouchableOpacity onPress={this.onPress00}>
-                    <Text style={styles.texto}>{c00}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={this.onPress01}>
-                    <Text style={styles.texto}>
-                      {c01}
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={this.onPress02}>
-                    <Text style={styles.texto}>
-                      {c02}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-                <View style={{ justifyContent: 'space-around', flexDirection: 'row' }}>
-                  <TouchableOpacity onPress={this.onPress10}>
-                    <Text style={styles.texto}>
-                      {c10}
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={this.onPress11}>
-                    <Text style={styles.texto}>
-                      {c11}
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={this.onPress12}>
-                    <Text style={styles.texto}>
-                      {c12}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-                <View style={{ justifyContent: 'space-around', flexDirection: 'row' }}>
-                  <TouchableOpacity onPress={this.onPress20}>
-                    <Text style={styles.texto}>
-                      {c20}
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={this.onPress21}>
-                    <Text style={styles.texto}>
-                      {c21}
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={this.onPress22}>
-                    <Text style={styles.texto}>
-                      {c22}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
+                {cells.map((row, index) => (
+                  <View style={{
+                    justifyContent: 'space-around',
+                    flexDirection: 'row',
+                  }}>
+                    {row.map((cell, cIndex) => (
+                      <TouchableOpacity
+                        onPress={() => this.onPressCell(index, cIndex)}
+                      >
+                        <Text style={styles.texto}>{cell}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                ))}
               </View>
             ) : (
                 <View style={styles.containerQrCode}>
