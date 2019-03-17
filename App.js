@@ -43,6 +43,57 @@ export default class App extends React.Component {
     }
   }
 
+  criar = () => {
+    firebase.database().ref().push({
+      c00: '-',
+      c01: '-',
+      c02: '-',
+      c10: '-',
+      c11: '-',
+      c12: '-',
+      c20: '-',
+      c21: '-',
+      c22: '-',
+      criador: true,
+      convidado: false,
+      jogada: 0
+    }).then((data) => {
+      firebase.database().ref(data.key).on('value', (snapshot) => {
+        const val = snapshot.val();
+        this.setState(
+          {
+            c00: val.c00,
+            c01: val.c01,
+            c02: val.c02,
+            c10: val.c10,
+            c11: val.c11,
+            c12: val.c12,
+            c20: val.c20,
+            c21: val.c21,
+            c22: val.c22,
+            statusJogo: val.jogada
+          }
+        );
+        if (val.convidado && !this.state.convidado) {
+          this.setState(
+            {
+              convidado: true,
+              statusJogo: 1
+            }
+          );
+        };
+      });
+      this.setState(
+        {
+          criador: true,
+          codJogo: data.key,
+          iniciado: true,
+        });
+    }).catch((error) => {
+      console.log('error ', error)
+    });
+  };
+
   render() {
     const { c00, c01, c02, c10, c11, c12, c20, c21, c22, iniciado, showDialog, convidado, codJogo } = this.state;
     return (
